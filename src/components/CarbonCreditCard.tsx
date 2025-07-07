@@ -1,7 +1,11 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { MapPin, Calendar, Zap, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { TransactionManager } from "./TransactionManager";
+import { useAuth } from "./AuthProvider";
 
 interface CarbonCreditCardProps {
   project: {
@@ -19,6 +23,9 @@ interface CarbonCreditCardProps {
 }
 
 const CarbonCreditCard = ({ project }: CarbonCreditCardProps) => {
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const { user } = useAuth();
+
   const getStatusIcon = () => {
     switch (project.status) {
       case 'verified':
@@ -99,14 +106,26 @@ const CarbonCreditCard = ({ project }: CarbonCreditCardProps) => {
 
       <CardFooter className="pt-3">
         <div className="flex w-full space-x-2">
-          <Button variant="outline" className="flex-1">
-            View Details
-          </Button>
-          <Button className="flex-1 bg-gradient-eco" disabled={project.status !== 'verified'}>
-            Purchase Credits
+          <Link to={`/projects/${project.id}`}>
+            <Button variant="outline" className="flex-1">
+              View Details
+            </Button>
+          </Link>
+          <Button 
+            className="flex-1 bg-gradient-eco" 
+            disabled={project.status !== 'verified' || !user}
+            onClick={() => setShowTransactionModal(true)}
+          >
+            {user ? 'Purchase Credits' : 'Sign In to Purchase'}
           </Button>
         </div>
       </CardFooter>
+
+      <TransactionManager
+        project={project}
+        isOpen={showTransactionModal}
+        onClose={() => setShowTransactionModal(false)}
+      />
     </Card>
   );
 };

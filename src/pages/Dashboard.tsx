@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Leaf, Shield, BarChart3, Plus, TrendingUp, Users, Zap } from "lucide-react";
+import { Leaf, Shield, BarChart3, Plus, TrendingUp, Users, Zap, LogIn, LogOut, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/AuthProvider";
+import { AuthModal } from "@/components/AuthModal";
+import { TransactionHistory } from "@/components/TransactionHistory";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -14,7 +17,9 @@ const Dashboard = () => {
     totalTransactions: 0,
     verifiedProjects: 0
   });
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { toast } = useToast();
+  const { user, profile, signOut } = useAuth();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -66,6 +71,27 @@ const Dashboard = () => {
                 <Shield className="w-3 h-3 mr-1" />
                 Veridian Integrated
               </Badge>
+              
+              {user ? (
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {profile?.display_name || user.email}
+                    </span>
+                  </div>
+                  <Button variant="outline" onClick={() => signOut()}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <Button variant="outline" onClick={() => setShowAuthModal(true)}>
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              )}
+              
               <Link to="/integration">
                 <Button variant="outline">API Access</Button>
               </Link>
@@ -209,6 +235,8 @@ const Dashboard = () => {
           </div>
 
           <div className="space-y-6">
+            {user && <TransactionHistory />}
+            
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
@@ -255,6 +283,11 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+      />
     </div>
   );
 };

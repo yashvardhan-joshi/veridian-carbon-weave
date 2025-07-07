@@ -6,12 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MapPin, Calendar, Zap, CheckCircle, Clock, AlertCircle, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { TransactionManager } from "@/components/TransactionManager";
+import { useAuth } from "@/components/AuthProvider";
 
 const ProjectDetail = () => {
   const { id } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -84,10 +88,15 @@ const ProjectDetail = () => {
   };
 
   const handlePurchaseCredits = () => {
-    toast({
-      title: "Purchase Initiated",
-      description: "Credit purchase functionality will be implemented with payment integration.",
-    });
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to purchase credits.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setShowTransactionModal(true);
   };
 
   if (loading) {
@@ -260,10 +269,10 @@ const ProjectDetail = () => {
                   </div>
                   <Button 
                     className="w-full bg-gradient-eco" 
-                    disabled={project.status !== 'verified'}
+                    disabled={project.status !== 'verified' || !user}
                     onClick={handlePurchaseCredits}
                   >
-                    Purchase Credits
+                    {user ? 'Purchase Credits' : 'Sign In to Purchase'}
                   </Button>
                 </div>
               </CardContent>
@@ -295,6 +304,18 @@ const ProjectDetail = () => {
           </div>
         </div>
       </div>
+
+      {project && (
+        <TransactionManager
+          project={project}
+          isOpen={showTransactionModal}
+          onClose={() => setShowTransactionModal(false)}
+          onTransactionComplete={() => {
+            // Refresh project data after transaction
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 };

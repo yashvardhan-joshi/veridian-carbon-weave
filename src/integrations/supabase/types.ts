@@ -110,6 +110,102 @@ export type Database = {
           },
         ]
       }
+      credit_transactions: {
+        Row: {
+          blockchain_tx_hash: string | null
+          buyer_id: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          price_per_credit: number
+          project_id: string
+          quantity: number
+          seller_id: string | null
+          status: string
+          total_amount: number | null
+          transaction_type: string
+        }
+        Insert: {
+          blockchain_tx_hash?: string | null
+          buyer_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          price_per_credit: number
+          project_id: string
+          quantity: number
+          seller_id?: string | null
+          status?: string
+          total_amount?: number | null
+          transaction_type: string
+        }
+        Update: {
+          blockchain_tx_hash?: string | null
+          buyer_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          price_per_credit?: number
+          project_id?: string
+          quantity?: number
+          seller_id?: string | null
+          status?: string
+          total_amount?: number | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_transactions_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "credit_transactions_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       registry_sync_logs: {
         Row: {
           end_time: string | null
