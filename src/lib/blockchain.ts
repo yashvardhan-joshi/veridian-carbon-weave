@@ -24,7 +24,7 @@ export const POLYGON_AMOY_CONFIG = {
 };
 
 // Contract address - will be set after deployment or via environment
-export const ICX_REGISTRY_ADDRESS = process.env.REACT_APP_ICX_REGISTRY_ADDRESS || '0x1234567890123456789012345678901234567890';
+export const ICX_REGISTRY_ADDRESS = import.meta.env.VITE_REACT_APP_ICX_REGISTRY_ADDRESS || '0x1234567890123456789012345678901234567890';
 
 export enum CreditStatus {
   Active = 0,
