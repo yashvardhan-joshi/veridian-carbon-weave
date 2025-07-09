@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       carbon_projects: {
         Row: {
+          blockchain_tx_hash: string | null
           credits_issued: number
           credits_retired: number
           description: string | null
@@ -23,6 +24,7 @@ export type Database = {
           last_synced: string | null
           location: string
           metadata: Json | null
+          metadata_uri: string | null
           methodology: string
           name: string
           registration_date: string | null
@@ -33,6 +35,7 @@ export type Database = {
           verification_date: string | null
         }
         Insert: {
+          blockchain_tx_hash?: string | null
           credits_issued?: number
           credits_retired?: number
           description?: string | null
@@ -40,6 +43,7 @@ export type Database = {
           last_synced?: string | null
           location: string
           metadata?: Json | null
+          metadata_uri?: string | null
           methodology: string
           name: string
           registration_date?: string | null
@@ -50,6 +54,7 @@ export type Database = {
           verification_date?: string | null
         }
         Update: {
+          blockchain_tx_hash?: string | null
           credits_issued?: number
           credits_retired?: number
           description?: string | null
@@ -57,6 +62,7 @@ export type Database = {
           last_synced?: string | null
           location?: string
           metadata?: Json | null
+          metadata_uri?: string | null
           methodology?: string
           name?: string
           registration_date?: string | null

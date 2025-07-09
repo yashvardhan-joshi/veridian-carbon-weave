@@ -66,7 +66,7 @@ export class ProjectDataManager {
       const { error } = await supabase
         .from('carbon_projects')
         .update({
-          metadata: JSON.parse(metadataJSON),
+          metadata: JSON.parse(metadataJSON) as any,
           metadata_uri: metadataURI
         })
         .eq('registry_id', projectData.projectId);
@@ -111,7 +111,7 @@ export class ProjectDataManager {
         .update({
           credits_issued: Number(onChainData.totalVolume),
           status: this.mapBlockchainStatus(onChainData.status),
-          metadata: metadata,
+          metadata: metadata as any,
           metadata_uri: onChainData.metadataURI,
           last_synced: new Date().toISOString()
         })
@@ -161,7 +161,7 @@ export class ProjectDataManager {
               projectId: latestBatch.projectId,
               totalVolume: Number(latestBatch.totalVolume),
               currentOwner: latestBatch.currentOwner,
-              status: this.mapBlockchainStatus(latestBatch.status),
+              status: this.mapBlockchainStatus(latestBatch.status) as 'Active' | 'Retired' | 'Pending' | 'Suspended',
               metadataURI: latestBatch.metadataURI,
               createdAt: Number(latestBatch.createdAt),
               vintageYear: Number(latestBatch.vintageYear)
