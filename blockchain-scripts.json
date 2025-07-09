@@ -1,0 +1,11 @@
+
+{
+  "scripts": {
+    "blockchain:compile": "npx hardhat compile",
+    "blockchain:test": "npx hardhat test",
+    "blockchain:deploy:local": "npx hardhat run scripts/deploy.js --network hardhat",
+    "blockchain:deploy:amoy": "npx hardhat run scripts/deploy.js --network polygonAmoy",
+    "blockchain:verify": "npx hardhat verify --network polygonAmoy",
+    "blockchain:console": "npx hardhat console --network polygonAmoy"
+  }
+}

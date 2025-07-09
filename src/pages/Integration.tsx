@@ -1,22 +1,30 @@
-import IntegrationHub from "@/components/IntegrationHub";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+
+import { Header } from "@/components/Header";
+import { IntegrationHub } from "@/components/IntegrationHub";
+import { RegistrySyncStatus } from "@/components/RegistrySyncStatus";
+import { BlockchainIntegration } from "@/components/BlockchainIntegration";
 
 const Integration = () => {
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center mb-6">
-          <Link to="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Integration Hub</h1>
+          <p className="text-muted-foreground">
+            Connect your registry with external systems, blockchain networks, and data sources.
+          </p>
         </div>
-        <IntegrationHub />
-      </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <BlockchainIntegration />
+          <RegistrySyncStatus />
+        </div>
+        
+        <div className="mt-8">
+          <IntegrationHub />
+        </div>
+      </main>
     </div>
   );
 };
