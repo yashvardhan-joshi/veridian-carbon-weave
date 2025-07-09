@@ -51,7 +51,7 @@ export class BlockchainService {
   async connect(): Promise<boolean> {
     try {
       if (typeof window === 'undefined' || !window.ethereum) {
-        throw new Error('MetaMask is not installed');
+        return false;
       }
 
       this.provider = new ethers.BrowserProvider(window.ethereum);
