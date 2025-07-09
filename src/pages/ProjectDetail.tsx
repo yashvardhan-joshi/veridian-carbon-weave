@@ -3,10 +3,12 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, Calendar, Zap, CheckCircle, Clock, AlertCircle, ExternalLink } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, MapPin, Calendar, Zap, CheckCircle, Clock, AlertCircle, ExternalLink, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionManager } from "@/components/TransactionManager";
+import { ProjectMetadataViewer } from "@/components/ProjectMetadataViewer";
 import { useAuth } from "@/components/AuthProvider";
 
 const ProjectDetail = () => {
@@ -46,7 +48,9 @@ const ProjectDetail = () => {
           methodology: data.methodology,
           registrationDate: data.registration_date,
           verificationDate: data.verification_date,
-          blockchainTx: data.status === 'verified' ? `0x${Math.random().toString(16).substr(2, 40)}` : undefined
+          blockchainTx: data.status === 'verified' ? `0x${Math.random().toString(16).substr(2, 40)}` : undefined,
+          metadataUri: data.metadata_uri,
+          lastSynced: data.last_synced
         };
 
         setProject(formattedProject);
@@ -219,29 +223,64 @@ const ProjectDetail = () => {
 
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>Project Details</CardTitle>
+                <CardTitle>Project Information</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-medium mb-3">Methodology</h4>
-                    <p className="text-sm text-muted-foreground mb-4">{project.methodology}</p>
-                    
-                    <h4 className="font-medium mb-3">Registration Date</h4>
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      {project.registrationDate ? new Date(project.registrationDate).toLocaleDateString() : 'N/A'}
-                    </div>
-                  </div>
+                <Tabs defaultValue="details" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="details">Project Details</TabsTrigger>
+                    <TabsTrigger value="blockchain">Blockchain Data</TabsTrigger>
+                    <TabsTrigger value="documents">Documentation</TabsTrigger>
+                  </TabsList>
                   
-                  <div>
-                    <h4 className="font-medium mb-3">Credits Issued</h4>
-                    <p className="text-sm text-muted-foreground mb-4">{project.creditsIssued.toLocaleString()} tCO₂e</p>
-                    
-                    <h4 className="font-medium mb-3">Credits Retired</h4>
-                    <p className="text-sm text-muted-foreground">{project.creditsRetired.toLocaleString()} tCO₂e</p>
-                  </div>
-                </div>
+                  <TabsContent value="details" className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium mb-3">Methodology</h4>
+                        <p className="text-sm text-muted-foreground mb-4">{project.methodology}</p>
+                        
+                        <h4 className="font-medium mb-3">Registration Date</h4>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          {project.registrationDate ? new Date(project.registrationDate).toLocaleDateString() : 'N/A'}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-3">Credits Issued</h4>
+                        <p className="text-sm text-muted-foreground mb-4">{project.creditsIssued.toLocaleString()} tCO₂e</p>
+                        
+                        <h4 className="font-medium mb-3">Credits Retired</h4>
+                        <p className="text-sm text-muted-foreground">{project.creditsRetired.toLocaleString()} tCO₂e</p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="blockchain">
+                    <ProjectMetadataViewer projectId={project.id} />
+                  </TabsContent>
+                  
+                  <TabsContent value="documents" className="space-y-4">
+                    <div className="text-center py-8">
+                      <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground mb-2">
+                        Project documentation is managed through our integrated asset management system
+                      </p>
+                      {project.metadataUri ? (
+                        <Button variant="outline" asChild>
+                          <a href={project.metadataUri} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            View Full Documentation
+                          </a>
+                        </Button>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Documentation will be available after blockchain integration
+                        </p>
+                      )}
+                    </div>
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
           </div>
@@ -280,7 +319,7 @@ const ProjectDetail = () => {
 
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle>Verification Status</CardTitle>
+                <CardTitle>Data Integration Status</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -295,8 +334,16 @@ const ProjectDetail = () => {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Veridian Ledger</span>
-                    <Badge className="bg-success text-success-foreground">Synced</Badge>
+                    <span className="text-sm">Metadata Linked</span>
+                    <Badge className={project.metadataUri ? "bg-success text-success-foreground" : "bg-pending text-pending-foreground"}>
+                      {project.metadataUri ? 'Linked' : 'Pending'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Last Synced</span>
+                    <span className="text-xs text-muted-foreground">
+                      {project.lastSynced ? new Date(project.lastSynced).toLocaleDateString() : 'Never'}
+                    </span>
                   </div>
                 </div>
               </CardContent>
