@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,16 +22,18 @@ export const BlockchainIntegration = () => {
       setIsConnected(true);
       // Get wallet address and network info
       try {
-        const provider = new (window as any).ethereum ? 
-          new (await import('ethers')).ethers.BrowserProvider((window as any).ethereum) : null;
-        
-        if (provider) {
-          const signer = await provider.getSigner();
-          const address = await signer.getAddress();
-          const network = await provider.getNetwork();
+        if (typeof window !== 'undefined' && window.ethereum) {
+          const { ethers } = await import('ethers');
+          const provider = new ethers.BrowserProvider(window.ethereum);
           
-          setWalletAddress(address);
-          setNetworkInfo(network);
+          if (provider) {
+            const signer = await provider.getSigner();
+            const address = await signer.getAddress();
+            const network = await provider.getNetwork();
+            
+            setWalletAddress(address);
+            setNetworkInfo(network);
+          }
         }
       } catch (error) {
         console.error('Error getting wallet info:', error);

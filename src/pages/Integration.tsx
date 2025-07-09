@@ -1,6 +1,5 @@
-
-import { Header } from "@/components/Header";
-import { IntegrationHub } from "@/components/IntegrationHub";
+import Header from "@/components/Header";
+import IntegrationHub from "@/components/IntegrationHub";
 import { RegistrySyncStatus } from "@/components/RegistrySyncStatus";
 import { BlockchainIntegration } from "@/components/BlockchainIntegration";
 
