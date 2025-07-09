@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { AuthModal } from "@/components/AuthModal";
 import { TransactionHistory } from "@/components/TransactionHistory";
+import { RegistrySyncStatus } from "@/components/RegistrySyncStatus";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -236,6 +237,8 @@ const Dashboard = () => {
 
           <div className="space-y-6">
             {user && <TransactionHistory />}
+            
+            <RegistrySyncStatus />
             
             <Card>
               <CardHeader>
