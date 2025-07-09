@@ -21,6 +21,7 @@ export type Database = {
           credits_retired: number
           description: string | null
           developer: string
+          document_url: string | null
           last_synced: string | null
           location: string
           metadata: Json | null
@@ -40,6 +41,7 @@ export type Database = {
           credits_retired?: number
           description?: string | null
           developer: string
+          document_url?: string | null
           last_synced?: string | null
           location: string
           metadata?: Json | null
@@ -59,6 +61,7 @@ export type Database = {
           credits_retired?: number
           description?: string | null
           developer?: string
+          document_url?: string | null
           last_synced?: string | null
           location?: string
           metadata?: Json | null
@@ -194,6 +197,7 @@ export type Database = {
           phone: string | null
           updated_at: string
           user_id: string
+          wallet_address: string | null
         }
         Insert: {
           company_name?: string | null
@@ -204,6 +208,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id: string
+          wallet_address?: string | null
         }
         Update: {
           company_name?: string | null
@@ -214,6 +219,7 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -249,6 +255,41 @@ export type Database = {
           sync_type?: string
         }
         Relationships: []
+      }
+      user_wallets: {
+        Row: {
+          created_at: string | null
+          encrypted_private_key: string
+          id: string
+          updated_at: string | null
+          user_id: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          encrypted_private_key: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          encrypted_private_key?: string
+          id?: string
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {

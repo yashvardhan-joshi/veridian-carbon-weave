@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Recycle, ArrowRightLeft } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { marketplaceService } from '@/lib/marketplaceService';
+import { retirementService } from '@/lib/retirementService';
 import { useAuth } from './AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +33,7 @@ export const TransactionManager = ({
 }: TransactionManagerProps) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [transactionType, setTransactionType] = useState<'purchase' | 'retirement'>('purchase');
+  const [buyerAddress, setBuyerAddress] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -42,6 +45,15 @@ export const TransactionManager = ({
       toast({
         title: "Authentication Required",
         description: "Please sign in to complete transactions.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!buyerAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+      toast({
+        title: "Invalid Address",
+        description: "Please enter a valid wallet address.",
         variant: "destructive"
       });
       return;
@@ -59,65 +71,54 @@ export const TransactionManager = ({
     setLoading(true);
 
     try {
-      // Create transaction record
-      const transactionData = {
-        project_id: project.id,
-        buyer_id: user.id,
-        quantity: quantity,
-        price_per_credit: project.price,
-        transaction_type: transactionType,
-        status: 'pending',
-        blockchain_tx_hash: `0x${Math.random().toString(16).substr(2, 40)}`, // Mock blockchain hash
-        metadata: {
-          project_name: project.name,
-          transaction_timestamp: new Date().toISOString()
+      if (transactionType === 'purchase') {
+        const purchaseResult = await marketplaceService.executePurchase({
+          projectId: project.id,
+          buyerAddress,
+          sellerAddress: '0x1234567890123456789012345678901234567890', // Mock seller address
+          quantity,
+          pricePerCredit: project.price,
+          batchId: 1, // This would be determined dynamically
+          buyerUserId: user.id
+        });
+
+        if (purchaseResult.success) {
+          toast({
+            title: "Purchase Initiated",
+            description: `Purchase of ${quantity} credits submitted to blockchain.`,
+          });
+        } else {
+          throw new Error(purchaseResult.error || 'Purchase failed');
         }
-      };
+      } else {
+        const retirementResult = await retirementService.retireCredits({
+          projectId: project.id,
+          batchId: 1, // This would be determined dynamically
+          quantity,
+          userAddress: buyerAddress,
+          userId: user.id,
+          reason: 'Marketplace retirement'
+        });
 
-      const { error: transactionError } = await supabase
-        .from('credit_transactions')
-        .insert(transactionData);
-
-      if (transactionError) throw transactionError;
-
-      // Update project credits
-      const newCredits = project.credits - quantity;
-      const { error: updateError } = await supabase
-        .from('carbon_projects')
-        .update({
-          credits_retired: transactionType === 'retirement' ? quantity : 0
-        })
-        .eq('registry_id', project.id);
-
-      if (updateError) throw updateError;
-
-      // Simulate blockchain processing
-      setTimeout(async () => {
-        await supabase
-          .from('credit_transactions')
-          .update({
-            status: 'completed',
-            completed_at: new Date().toISOString()
-          })
-          .eq('project_id', project.id)
-          .eq('buyer_id', user.id)
-          .eq('status', 'pending');
-      }, 2000);
-
-      toast({
-        title: "Transaction Submitted",
-        description: `${transactionType === 'purchase' ? 'Purchase' : 'Retirement'} of ${quantity} credits initiated successfully.`,
-      });
+        if (retirementResult.success) {
+          toast({
+            title: "Credits Retired",
+            description: `${quantity} credits have been permanently retired.`,
+          });
+        } else {
+          throw new Error(retirementResult.error || 'Retirement failed');
+        }
+      }
 
       onTransactionComplete?.();
       onClose();
       resetForm();
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transaction error:', error);
       toast({
         title: "Transaction Failed",
-        description: "Failed to process transaction. Please try again.",
+        description: error.message || "Failed to process transaction. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -128,6 +129,7 @@ export const TransactionManager = ({
   const resetForm = () => {
     setQuantity(1);
     setTransactionType('purchase');
+    setBuyerAddress('');
   };
 
   return (
@@ -202,21 +204,42 @@ export const TransactionManager = ({
               </p>
             </div>
 
+            <div>
+              <label className="text-sm font-medium">
+                {transactionType === 'purchase' ? 'Your Wallet Address' : 'Wallet Address (Credit Owner)'}
+              </label>
+              <Input
+                value={buyerAddress}
+                onChange={(e) => setBuyerAddress(e.target.value)}
+                placeholder="0x..."
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {transactionType === 'purchase' 
+                  ? 'Address that will receive the credits' 
+                  : 'Address that currently owns the credits to retire'
+                }
+              </p>
+            </div>
+
             <Card className="bg-muted/50">
               <CardContent className="pt-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm">Quantity:</span>
                   <span className="font-medium">{quantity.toLocaleString()} tCO₂e</span>
                 </div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm">Price per credit:</span>
-                  <span className="font-medium">${project.price.toFixed(2)}</span>
-                </div>
-                <hr className="my-2" />
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">Total Amount:</span>
-                  <span className="text-lg font-bold">${totalAmount.toFixed(2)}</span>
-                </div>
+                {transactionType === 'purchase' && (
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm">Price per credit:</span>
+                      <span className="font-medium">${project.price.toFixed(2)}</span>
+                    </div>
+                    <hr className="my-2" />
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Total Amount:</span>
+                      <span className="text-lg font-bold">${totalAmount.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -227,7 +250,7 @@ export const TransactionManager = ({
             </Button>
             <Button
               onClick={handleTransaction}
-              disabled={loading || project.status !== 'verified' || !user}
+              disabled={loading || project.status !== 'verified' || !user || !buyerAddress}
               className="flex-1 bg-gradient-eco"
             >
               {loading ? "Processing..." : `${transactionType === 'purchase' ? 'Purchase' : 'Retire'} Credits`}
@@ -239,7 +262,7 @@ export const TransactionManager = ({
               <div className="flex items-center">
                 <Recycle className="w-4 h-4 mr-2 text-green-600" />
                 <p className="text-sm text-green-800">
-                  Retiring credits permanently removes them from circulation to offset your carbon footprint.
+                  Retiring credits permanently removes them from circulation and provides blockchain-verified proof of carbon offset.
                 </p>
               </div>
             </div>
