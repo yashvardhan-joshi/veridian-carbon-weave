@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -14,6 +15,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
@@ -33,9 +35,15 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!recaptchaToken) {
+      console.error('Please complete the reCAPTCHA verification');
+      return;
+    }
+    
     setLoading(true);
     try {
-      await signUp(email, password, displayName);
+      await signUp(email, password, displayName, recaptchaToken);
       onClose();
       resetForm();
     } catch (error) {
@@ -49,6 +57,7 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     setEmail('');
     setPassword('');
     setDisplayName('');
+    setRecaptchaToken(null);
   };
 
   return (
@@ -127,6 +136,13 @@ export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               <Button type="submit" className="w-full bg-gradient-eco" disabled={loading}>
                 {loading ? "Creating Account..." : "Create Account"}
               </Button>
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'}
+                  onChange={(token) => setRecaptchaToken(token)}
+                  onExpired={() => setRecaptchaToken(null)}
+                />
+              </div>
             </form>
           </TabsContent>
         </Tabs>

@@ -8,7 +8,7 @@ interface AuthContextType {
   profile: any | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName?: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName?: string, captchaToken?: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (data: any) => Promise<void>;
 }
@@ -97,11 +97,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
-    const { data, error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, displayName?: string, captchaToken?: string) => {
+    const signUpOptions: any = {
       email,
       password,
-    });
+    };
+
+    if (captchaToken) {
+      signUpOptions.options = {
+        captchaToken
+      };
+    }
+
+    const { data, error } = await supabase.auth.signUp(signUpOptions);
 
     if (error) {
       toast({
